@@ -28,31 +28,25 @@ func NewDemoHandler(gateway cx.HttpHandler, demoService demo.Service) delivery.H
 	logger.Log.Debug("use routing `/v1`")
 	v1 := gateway.GetApiRoute().Group("/v1")
 	{
-		// demo 相關的 routing
-		logger.Log.Debug("use routing `/v1`")
-
-		// app 相關的 routing
-		logger.Log.Debug("use routing `/v1/demo`")
-		demo := v1.Group("/demo")
+		logger.Log.Debug("use routing `/v1/department`")
+		department := v1.Group("/department")
 		{
-			department := demo.Group("/department")
-			{
-				department.GET("", e.Wrapper(handler.GetDepartment))
-				department.GET("/:id", e.Wrapper(handler.GetDepartment))
-				department.POST("", e.Wrapper(handler.CreateDepartment))
-				department.PATCH("/:id", e.Wrapper(handler.ModifyDepartment))
-				department.DELETE("/:id", e.Wrapper(handler.DeleteDepartment))
-			}
-
-			user := demo.Group("/user")
-			{
-				user.GET("", e.Wrapper(handler.GetUser))
-				user.GET("/:id", e.Wrapper(handler.GetUser))
-				user.POST("", e.Wrapper(handler.CreateUser))
-				user.PATCH("/:id", e.Wrapper(handler.ModifyUser))
-				user.DELETE("/:id", e.Wrapper(handler.DeleteUser))
-			}
+			department.GET("", e.Wrapper(handler.GetDepartment))
+			department.GET("/:id", e.Wrapper(handler.GetDepartment))
+			department.POST("", e.Wrapper(handler.CreateDepartment))
+			department.PATCH("/:id", e.Wrapper(handler.ModifyDepartment))
+			department.DELETE("/:id", e.Wrapper(handler.DeleteDepartment))
 		}
+		logger.Log.Debug("use routing `/v1/user`")
+		user := v1.Group("/user")
+		{
+			user.GET("", e.Wrapper(handler.GetUser))
+			user.GET("/:id", e.Wrapper(handler.GetUser))
+			user.POST("", e.Wrapper(handler.CreateUser))
+			user.PATCH("/:id", e.Wrapper(handler.ModifyUser))
+			user.DELETE("/:id", e.Wrapper(handler.DeleteUser))
+		}
+
 	}
 	return handler
 }
@@ -87,7 +81,7 @@ func (d *DemoHttpHandler) CreateDepartment(c *gin.Context) error {
 func (d *DemoHttpHandler) CreateUser(c *gin.Context) error {
 	var (
 		valid = new(validation.Validation)
-		data *model.User
+		data  *model.User
 	)
 
 	//綁定參數
