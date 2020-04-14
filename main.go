@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/codingXiang/backend-skeleton/model"
-	http2 "github.com/codingXiang/backend-skeleton/module/demo/delivery/http"
 	"github.com/codingXiang/backend-skeleton/module/demo/repository"
 	"github.com/codingXiang/backend-skeleton/module/demo/service"
+	. "github.com/codingXiang/backend-skeleton/module/demo/delivery/http"
 	. "github.com/codingXiang/cxgateway/delivery/http"
 	. "github.com/codingXiang/cxgateway/pkg/settings"
 	"github.com/codingXiang/go-logger"
@@ -39,17 +39,17 @@ func main() {
 		readTimeout  = timeout.GetRead()
 		writeTimeout = timeout.GetWrite()
 	)
-	// 建立 Table Schema
+	// 建立 Table Schema (Module)
 	{
 		orm.DatabaseORM.CheckTable(false, model.Department{})
 		orm.DatabaseORM.CheckTable(false, model.User{})
 	}
 
-	// 建立 Repository
+	// 建立 Repository (Module)
 	var (
 		demoRepo = repository.NewDemoRepository(orm.DatabaseORM.GetInstance())
 	)
-	// 建立 Service
+	// 建立 Service (Module)
 	logger.Log.Debug("Create Service Instance")
 	var (
 		demoService = service.NewDemoService(demoRepo)
@@ -60,8 +60,10 @@ func main() {
 	var (
 		gateway = NewApiGateway()
 	)
+	// 建立 Http Handler (Module)
+	logger.Log.Debug("Create Http Handler")
 	var (
-		_ = http2.NewDemoHandler(gateway, demoService)
+		_ = NewDemoHandler(gateway, demoService)
 	)
 	logger.Log.Info("Setting Http Server Info")
 	// 設定 http server

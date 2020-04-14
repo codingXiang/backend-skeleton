@@ -9,7 +9,7 @@ database:
   maxOpenConns: 1000
   maxIdleConns: 1000
   maxLifeTime: 5
-  logMode: false
+  logMode: true
   upgradeFilePath: 'sql/'
   version:
     version: "1.0.2"
@@ -22,10 +22,10 @@ application:
   timeout:
     read: 1000
     write: 1000
-  port: 8080
+  port: 8888
   mode: "test"
   log:
-    level: "info"
+    level: "debug"
     format: "json"
   appId: "ops"
   appToken: ""
