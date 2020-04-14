@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/codingXiang/backend-skeleton/model"
+	. "github.com/codingXiang/backend-skeleton/module/demo/delivery/http"
 	"github.com/codingXiang/backend-skeleton/module/demo/repository"
 	"github.com/codingXiang/backend-skeleton/module/demo/service"
-	. "github.com/codingXiang/backend-skeleton/module/demo/delivery/http"
+	"github.com/codingXiang/configer"
 	. "github.com/codingXiang/cxgateway/delivery/http"
-	. "github.com/codingXiang/cxgateway/pkg/settings"
 	"github.com/codingXiang/go-logger"
 	"github.com/codingXiang/go-orm"
 	"github.com/gin-gonic/gin"
@@ -17,64 +17,64 @@ import (
 
 func init() {
 	//取得組態變數
-	ConfigData = NewConfigData()
-	//設定 log 等級與格式
-	logger.Log = logger.NewLogger(ConfigData.GetApplication().GetLog())
-	//設定 Database 連線
-	orm.NewOrm(ConfigData.GetDatabase())
-	//設定 Redis 連線
-	orm.NewRedisClient(ConfigData.GetRedis())
-	//設定運行模式
-	mode := ConfigData.GetApplication().GetMode()
-	// port := settings.ConfigData.Data.Application.Port
-	if mode == "release" {
-		gin.SetMode("release")
+	configer.Config = configer.NewConfiger().
+		AddCore("config", configer.NewConfigerCore("yaml", "config", "./config", ".")).
+		AddCore("cloud", configer.NewConfigerCore("json", "cloud", "./config", ".")).
+		AddCore("java", configer.NewConfigerCore("properties", "java", "./config", "."))
+
+	if data, err := configer.Config.GetCore("config").ReadConfig(); err == nil {
+		//設定 log 等級與格式
+		logger.Log = logger.NewLogger(logger.InterfaceToLogger(data.Get("application.log")))
+		//設定 Database 連線
+		orm.NewOrm(orm.InterfaceToDatabase(data.Get("database")))
+		//設定 Redis 連線
+		orm.NewRedisClient(orm.InterfaceToRedis(data.Get("redis")))
+		//設定運行模式
+		mode := data.Get("application.mode")
+		// port := settings.ConfigData.Data.Application.Port
+		if mode == "release" {
+			gin.SetMode("release")
+		}
 	}
 }
 
 func main() {
-	// General Variable
-	var (
-		timeout      = ConfigData.GetApplication().GetTimeout()
-		readTimeout  = timeout.GetRead()
-		writeTimeout = timeout.GetWrite()
-	)
-	// 建立 Table Schema (Module)
-	{
-		orm.DatabaseORM.CheckTable(false, model.Department{})
-		orm.DatabaseORM.CheckTable(false, model.User{})
+	if data, err := configer.Config.GetCore("config").ReadConfig(); err == nil {
+		// 建立 Table Schema (Module)
+		{
+			orm.DatabaseORM.CheckTable(false, model.Department{})
+			orm.DatabaseORM.CheckTable(false, model.User{})
+		}
+		// 建立 Repository (Module)
+		var (
+			demoRepo = repository.NewDemoRepository(orm.DatabaseORM.GetInstance())
+		)
+		// 建立 Service (Module)
+		logger.Log.Debug("Create Service Instance")
+		var (
+			demoService = service.NewDemoService(demoRepo)
+		)
+		// 建立 API Gateway
+		logger.Log.Debug("Create API Gateway")
+		var (
+			gateway = NewApiGateway()
+		)
+		// 建立 Handler (Module)
+		logger.Log.Debug("Create Http Handler")
+		var (
+			_ = NewDemoHandler(gateway, demoService)
+		)
+		logger.Log.Info("Setting Http Server Info")
+		// 設定 http server
+		s := &http.Server{
+			Addr:           fmt.Sprintf(":%d", data.GetInt("application.port")),
+			Handler:        gateway.GetEngine(),
+			ReadTimeout:    time.Duration(data.GetInt("application.timeout.write")) * time.Second,
+			WriteTimeout:   time.Duration(data.GetInt("application.timeout.read")) * time.Second,
+			MaxHeaderBytes: 1 << 20,
+		}
+		logger.Log.Info("API Gateway Start Running")
+		//啟動 http server
+		s.ListenAndServe()
 	}
-
-	// 建立 Repository (Module)
-	var (
-		demoRepo = repository.NewDemoRepository(orm.DatabaseORM.GetInstance())
-	)
-	// 建立 Service (Module)
-	logger.Log.Debug("Create Service Instance")
-	var (
-		demoService = service.NewDemoService(demoRepo)
-	)
-
-	// 建立 API Gateway
-	logger.Log.Debug("Create API Gateway")
-	var (
-		gateway = NewApiGateway()
-	)
-	// 建立 Http Handler (Module)
-	logger.Log.Debug("Create Http Handler")
-	var (
-		_ = NewDemoHandler(gateway, demoService)
-	)
-	logger.Log.Info("Setting Http Server Info")
-	// 設定 http server
-	s := &http.Server{
-		Addr:           fmt.Sprintf(":%d", ConfigData.GetApplication().GetPort()),
-		Handler:        gateway.GetEngine(),
-		ReadTimeout:    time.Duration(readTimeout) * time.Second,
-		WriteTimeout:   time.Duration(writeTimeout) * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
-	logger.Log.Info("API Gateway Start Running")
-	//啟動 http server
-	s.ListenAndServe()
 }
