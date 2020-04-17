@@ -1,21 +1,21 @@
 package model
 
 type (
-	//DepartmentModelInterface  部門模型的實作介面
-	DepartmentModelInterface interface {
+	//DepartmentInterface  部門模型的實作介面
+	DepartmentInterface interface {
 		GetID() string
 		GetName() string
-		GetPreviousDepartment() DepartmentModelInterface
+		GetPreviousDepartment() DepartmentInterface
 	}
-	//UserModelInterface User 模型的實作介面
-	UserModelInterface interface {
+	//UserInterface User 模型的實作介面
+	UserInterface interface {
 		GetID() string
 		GetUserName() string
 		GetEmail() string
 		GetQQ() string
 		GetLocation() string
 		GetEXT() int
-		GetDepartment() DepartmentModelInterface
+		GetDepartment() DepartmentInterface
 	}
 )
 
@@ -52,7 +52,7 @@ func (d *Department) GetName() string {
 }
 
 //GetPreiousDepartment 用於取得上級部門
-func (d *Department) GetPreviousDepartment() DepartmentModelInterface {
+func (d *Department) GetPreviousDepartment() DepartmentInterface {
 	return d.PreviousDepartment
 }
 
@@ -87,6 +87,6 @@ func (u *User) GetEXT() int {
 }
 
 //GetDepartment 用於取得使用者部門
-func (u *User) GetDepartment() DepartmentModelInterface {
+func (u *User) GetDepartment() DepartmentInterface {
 	return u.Department
 }
