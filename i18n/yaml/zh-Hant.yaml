@@ -1,0 +1,12 @@
+- orm.create.success:
+    other: 建立成功
+- orm.create.failed:
+    other: 建立失敗，原因為 {{.Error}}
+- orm.update.success:
+    other: 更新成功
+- orm.update.failed:
+    other: 更新失敗，原因為 {{.Error}}
+- orm.get.success:
+    other: 取得成功
+- orm.get.failed:
+    other: 取得失敗，原因為 {{.Error}}

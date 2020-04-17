@@ -3,13 +3,14 @@ package main
 import (
 	"fmt"
 	"github.com/codingXiang/backend-skeleton/model"
-	. "github.com/codingXiang/backend-skeleton/module/demo/delivery/http"
-	"github.com/codingXiang/backend-skeleton/module/demo/repository"
-	"github.com/codingXiang/backend-skeleton/module/demo/service"
+	. "github.com/codingXiang/backend-skeleton/module/example/delivery/http"
+	"github.com/codingXiang/backend-skeleton/module/example/repository"
+	"github.com/codingXiang/backend-skeleton/module/example/service"
 	"github.com/codingXiang/configer"
 	. "github.com/codingXiang/cxgateway/delivery/http"
 	"github.com/codingXiang/go-logger"
 	"github.com/codingXiang/go-orm"
+	"github.com/codingXiang/gogo-i18n"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -23,12 +24,26 @@ func init() {
 		AddCore("java", configer.NewConfigerCore("properties", "java", "./config", "."))
 
 	if data, err := configer.Config.GetCore("config").ReadConfig(); err == nil {
+		//設定多語系 Handler
+		gogo_i18n.LangHandler = gogo_i18n.NewLanguageHandler()
 		//設定 log 等級與格式
 		logger.Log = logger.NewLogger(logger.InterfaceToLogger(data.Get("application.log")))
 		//設定 Database 連線
-		orm.NewOrm(orm.InterfaceToDatabase(data.Get("database")))
+		if setting := data.Get("database"); setting != nil {
+			orm.NewOrm(orm.InterfaceToDatabase(setting))
+		} else {
+			logger.Log.Error("database setting is not exist")
+			panic("must need to setting database config")
+
+		}
 		//設定 Redis 連線
-		orm.NewRedisClient(orm.InterfaceToRedis(data.Get("redis")))
+		if setting := data.Get("redis"); setting != nil {
+			orm.NewRedisClient(orm.InterfaceToRedis(setting))
+		} else {
+			logger.Log.Error("redis setting is not exist")
+			panic("must need to setting redis config")
+		}
+
 		//設定運行模式
 		mode := data.Get("application.mode")
 		// port := settings.ConfigData.Data.Application.Port
@@ -47,12 +62,12 @@ func main() {
 		}
 		// 建立 Repository (Module)
 		var (
-			demoRepo = repository.NewDemoRepository(orm.DatabaseORM.GetInstance())
+			exampleRepo = repository.NewExampleRepository(orm.DatabaseORM.GetInstance())
 		)
 		// 建立 Service (Module)
 		logger.Log.Debug("Create Service Instance")
 		var (
-			demoService = service.NewDemoService(demoRepo)
+			exampleService = service.NewExampleService(exampleRepo)
 		)
 		// 建立 API Gateway
 		logger.Log.Debug("Create API Gateway")
@@ -62,7 +77,7 @@ func main() {
 		// 建立 Handler (Module)
 		logger.Log.Debug("Create Http Handler")
 		var (
-			_ = NewDemoHandler(gateway, demoService)
+			_ = NewDemoHandler(gateway, exampleService)
 		)
 		logger.Log.Info("Setting Http Server Info")
 		// 設定 http server

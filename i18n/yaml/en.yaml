@@ -1,0 +1,12 @@
+- orm.create.success:
+    other: Create success
+- orm.create.failed:
+    other: Create failed，because {{.Error}}
+- orm.update.success:
+    other: Update success
+- orm.update.failed:
+    other: Update failed，because {{.Error}}
+- orm.get.success:
+    other: Get success
+- orm.get.failed:
+    other: Get {{.Data}} failed，because {{.Error}}

@@ -22,10 +22,16 @@ application:
   timeout:
     read: 1000
     write: 1000
-  port: 8888
+  port: 8080
   mode: "test"
   log:
     level: "debug"
     format: "json"
-  appId: "ops"
+  appId: "iam"
   appToken: ""
+  apiBaseRoute: "/api"
+i18n:
+  defaultLanguage: "en"
+  file:
+    path: "./i18n"
+    type: "yaml"

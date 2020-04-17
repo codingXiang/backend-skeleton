@@ -31,8 +31,8 @@
         ├── delivery
         │   ├── handler.go
         │   └── http
-        │       ├── handler.go
-        │       └── handler_test.go
+        │       ├── http.go
+        │       └── http_test.go
         ├── repository
         │   ├── repository.go
         │   └── repository_test.go
