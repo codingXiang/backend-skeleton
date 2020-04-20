@@ -21,7 +21,7 @@
 
 ## 如何實作
 ### 建立模組
-參數以下樹狀圖，可以複製 `startup` 模組進行實作
+參數以下樹狀圖，可以參考 `example` 模組進行實作
 
 ```
 ├── model
@@ -45,12 +45,12 @@
 ```
 
 #### 1. 建立 Model
-於 `model` 資料夾中建立與模組名稱相同的檔案，可參照 `demo` 範例
+於 `model` 資料夾中建立與模組名稱相同的檔案，可參照 `example` 範例
 #### 2. 建立 Module
 ##### 2-1. Repository
-於 `repository.go` 檔案中建立 `interface`後，再由 `repository` 資料夾中的 `repository.go` 來進行 implement，可參照 `demo` 範例
+於 `repository.go` 檔案中建立 `interface`後，再由 `repository` 資料夾中的 `repository.go` 來進行 implement，可參照 `example ` 範例
 ##### 2-2. Service
-於 `service.go` 檔案中建立 `interface`後，再由 `service` 資料夾中的 `service.go` 來進行 implement，可參照 `demo` 範例
+於 `service.go` 檔案中建立 `interface`後，再由 `service` 資料夾中的 `service.go` 來進行 implement，可參照 `example ` 範例
 ##### 2-1. delivery
 於 `delivery` 資料夾的 `handler.go` 檔案中建立 `interface`，名稱規定如下：
 
@@ -107,5 +107,72 @@ demoService = service.NewDemoService(demoRepo)
 ```
 _ = NewDemoHandler(gateway, demoService)
 ```
+
+## 組態
+### 設定
+目前支援 `json` `yaml` 這兩種格式
+#### 範例
+
+設定檔 `storage.yaml`
+
+```yaml
+database:
+  url: '127.0.0.1'
+  port: 3307
+  name: 'test'
+  username: 'root'
+  password: 'a12345'
+  type: 'mysql'
+  tablePrefix: ""
+  maxOpenConns: 1000
+  maxIdleConns: 1000
+  maxLifeTime: 5
+  logMode: true
+  upgradeFilePath: 'sql/'
+  version:
+    version: "1.0.2"
+redis:
+  url: '127.0.0.1'
+  port: 6379
+  password: 'a12345'
+  db: 0
+
+```
+
+程式讀取
+
+```
+configer.Config.AddCore("storage", configer.NewConfigerCore("yaml", "storage", "./config", "."))
+
+```
+## 多語系
+### 設定
+目前支援 `json` `yaml` 這兩種格式
+### 範例
+
+設定檔 
+
+```yaml
+- orm.create.success:
+    other: 建立成功
+- orm.create.failed:
+    other: 建立失敗，原因為 {{.Error}}
+- orm.update.success:
+    other: 更新成功
+- orm.update.failed:
+    other: 更新失敗，原因為 {{.Error}}
+- orm.get.success:
+    other: 取得成功
+- orm.get.failed:
+    other: 取得失敗，原因為 {{.Error}}
+```
+
+使用（於 `http.go` 裡面實作）
+
+```
+c.JSON(e.StatusSuccess(util.GetI18nData(c).GetMessage("orm.create.success", nil), result))
+
+```
+
 ----
 上述設定完畢後，執行 `go run main.go` 即可以將 `server` 進行啟動
