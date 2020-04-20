@@ -10,6 +10,7 @@ import (
 	"github.com/codingXiang/cxgateway/pkg/util"
 	"github.com/codingXiang/go-logger"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 type ExampleHttpHandler struct {
@@ -17,7 +18,7 @@ type ExampleHttpHandler struct {
 	demoService example.Service
 }
 
-func NewDemoHandler(gateway cx.HttpHandler, demoService example.Service) delivery.HttpHandler {
+func NewExampleHandler(gateway cx.HttpHandler, demoService example.Service) delivery.HttpHandler {
 	var handler = &ExampleHttpHandler{
 		gateway:     gateway,
 		demoService: demoService,
@@ -55,12 +56,13 @@ func NewDemoHandler(gateway cx.HttpHandler, demoService example.Service) deliver
 func (d *ExampleHttpHandler) CreateDepartment(c *gin.Context) error {
 	var (
 		valid = new(validation.Validation)
-		data  *model.Department
+		data  = new(model.Department)
 	)
 
 	//綁定參數
-	if err := d.gateway.GetHandler().BindBody(c, &data); err != nil {
-		return err
+	var err = c.ShouldBindWith(data, binding.JSON)
+	if err != nil {
+		return e.ParameterError("error parameter, please check your parameter again.")
 	}
 
 	//驗證表單資訊是否填寫充足
@@ -82,12 +84,13 @@ func (d *ExampleHttpHandler) CreateDepartment(c *gin.Context) error {
 func (d *ExampleHttpHandler) CreateUser(c *gin.Context) error {
 	var (
 		valid = new(validation.Validation)
-		data  *model.User
+		data  = new(model.User)
 	)
 
 	//綁定參數
-	if err := d.gateway.GetHandler().BindBody(c, &data); err != nil {
-		return err
+	var err = c.ShouldBindWith(data, binding.JSON)
+	if err != nil {
+		return e.ParameterError("error parameter, please check your parameter again.")
 	}
 
 	//驗證表單資訊是否填寫充足
@@ -186,12 +189,13 @@ func (d *ExampleHttpHandler) GetUser(c *gin.Context) error {
 
 func (d *ExampleHttpHandler) ModifyDepartment(c *gin.Context) error {
 	var (
-		data *model.Department
+		data = new(model.Department)
 	)
 
 	//綁定參數
-	if err := d.gateway.GetHandler().BindBody(c, &data); err != nil {
-		return err
+	var err = c.ShouldBindWith(data, binding.JSON)
+	if err != nil {
+		return e.ParameterError("error parameter, please check your parameter again.")
 	}
 	data.ID = c.Params.ByName("id")
 
@@ -205,13 +209,15 @@ func (d *ExampleHttpHandler) ModifyDepartment(c *gin.Context) error {
 
 func (d *ExampleHttpHandler) ModifyUser(c *gin.Context) error {
 	var (
-		data *model.User
+		data = new(model.User)
 	)
 
 	//綁定參數
-	if err := d.gateway.GetHandler().BindBody(c, &data); err != nil {
-		return err
+	var err = c.ShouldBindWith(data, binding.JSON)
+	if err != nil {
+		return e.ParameterError("error parameter, please check your parameter again.")
 	}
+
 	data.ID = c.Params.ByName("id")
 
 	if result, err := d.demoService.ModifyUser(data); err != nil {
